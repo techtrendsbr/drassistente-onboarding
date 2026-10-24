@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dr. Assistente · Monte o seu assistente</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #faf9fc;
+    --ink: #111827;
+    --muted: #6b7280;
+    --line: #ece8f3;
+    --card: #ffffff;
+    --brand: #7c3aed;
+    --brand-2: #a855f7;
+    --brand-soft: #f3edfe;
+    --grad: linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #c084fc 100%);
+    --shadow: 0 1px 2px rgba(60,30,110,.05), 0 8px 24px rgba(60,30,110,.08);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    font-family: Inter, system-ui, sans-serif;
+    background: radial-gradient(1200px 600px at 50% 30%, #f4eefe 0%, var(--bg) 60%);
+    color: var(--ink);
+    overflow: hidden;
+  }
+  button { font: inherit; color: inherit; cursor: pointer; }
+
+  header {
+    position: fixed; inset: 0 0 auto 0; height: 60px; z-index: 30;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 24px;
+    background: linear-gradient(#faf9fc 60%, rgba(250,249,252,0));
+  }
+  .logo { display: flex; align-items: center; gap: 8px; font-weight: 800; letter-spacing: -.02em; font-size: 17px; }
+  .logo .mark { display: flex; gap: 2px; align-items: center; height: 18px; }
+  .logo .mark i { width: 3px; border-radius: 2px; background: var(--grad); }
+  .logo b { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .trial {
+    border: 0; border-radius: 99px; padding: 8px 16px; font-weight: 600; font-size: 14px;
+    background: var(--grad); color: #fff;
+  }
+
+  /* Campo de funcionalidades */
+  #field { position: fixed; inset: 0; z-index: 1; }
+  .feat {
+    position: absolute; left: 0; top: 0; width: 164px;
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    padding: 12px 12px 10px; box-shadow: var(--shadow);
+    transition: transform .8s cubic-bezier(.2,.8,.2,1), opacity .6s ease, filter .6s ease, border-color .4s, box-shadow .4s;
+    will-change: transform;
+  }
+  .feat .ic { font-size: 22px; line-height: 1; }
+  .feat .nm { font-size: 13px; font-weight: 600; margin-top: 8px; line-height: 1.25; }
+  .feat .ds { font-size: 11.5px; color: var(--muted); margin-top: 4px; line-height: 1.3; max-height: 0; overflow: hidden; transition: max-height .5s; }
+  .feat.top .ds { max-height: 48px; }
+  .feat .tier { display: inline-block; margin-top: 6px; font-size: 10px; font-weight: 600; color: var(--muted); }
+  .feat.active { border-color: var(--brand-2); box-shadow: 0 0 0 3px rgba(168,85,247,.12), var(--shadow); }
+  .feat .badge {
+    position: absolute; top: 10px; right: 10px; font-size: 10px; font-weight: 600;
+    color: var(--brand); background: var(--brand-soft); padding: 2px 6px; border-radius: 99px;
+    opacity: 0; transition: opacity .4s;
+  }
+  .feat.active .badge { opacity: 1; }
+  .feat.dim { filter: grayscale(1); }
+
+  /* Painel */
+  #panel {
+    position: fixed; z-index: 20; left: 50%; bottom: 24px; transform: translateX(-50%);
+    width: min(920px, calc(100vw - 32px));
+    background: rgba(255,255,255,.97); border: 1px solid var(--line); border-radius: 22px;
+    box-shadow: 0 20px 60px rgba(60,30,110,.16);
+    padding: 18px 20px 20px;
+    max-height: calc(100vh - 90px); overflow: auto;
+  }
+  .counter {
+    position: fixed; z-index: 20; left: 50%; transform: translateX(-50%);
+    font-size: 13px; color: var(--muted); text-align: center; white-space: nowrap;
+    background: rgba(250,249,252,.92); padding: 4px 12px; border-radius: 99px;
+  }
+  .counter b { color: var(--ink); }
+  .ph { display: grid; grid-template-columns: 80px 1fr 80px; align-items: center; }
+  .nav { display: flex; gap: 4px; }
+  .nav button { width: 32px; height: 32px; border-radius: 8px; border: 0; background: transparent; color: var(--muted); }
+  .nav button:hover { background: var(--brand-soft); color: var(--brand); }
+  .nav button:disabled { opacity: .3; cursor: default; background: transparent; }
+  .q { text-align: center; }
+  .q h2 { margin: 0; font-size: 22px; letter-spacing: -.02em; font-weight: 700; }
+  .q p { margin: 4px 0 0; color: var(--muted); font-size: 14px; }
+  .dots { display: flex; gap: 4px; justify-content: flex-end; }
+  .dots i { width: 6px; height: 6px; border-radius: 99px; background: var(--line); }
+  .dots i.on { background: var(--brand-2); }
+
+  .opts { display: grid; gap: 10px; margin-top: 16px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+  .opt {
+    border: 1.5px solid transparent; background: #f6f4fa; border-radius: 14px;
+    padding: 16px 12px; text-align: center; transition: background .15s, border-color .15s, transform .15s;
+  }
+  .opt:hover { background: #efebf7; transform: translateY(-1px); }
+  .opt.sel { border-color: var(--brand-2); background: var(--brand-soft); }
+  .opt .oi { font-size: 26px; }
+  .opt .ol { font-weight: 600; margin-top: 6px; font-size: 15px; }
+  .opt .od { color: var(--muted); font-size: 12.5px; margin-top: 2px; }
+  .multi-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; font-size: 13px; color: var(--muted); }
+  .btn { border: 0; border-radius: 99px; padding: 10px 18px; font-weight: 600; font-size: 14px; background: var(--grad); color: #fff; }
+  .btn:disabled { opacity: .35; cursor: default; }
+  .btn.ghost { background: #f3f1f7; color: var(--ink); }
+
+  /* Resultado */
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; justify-content: center; }
+  .chip { font-size: 12.5px; background: #f3f1f7; border-radius: 99px; padding: 4px 10px; }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+  @media (max-width: 760px) { .cols { grid-template-columns: 1fr; } }
+  .box { border: 1px solid var(--line); border-radius: 16px; padding: 14px; }
+  .box + .box { margin-top: 12px; }
+  .box h3 { margin: 0 0 10px; font-size: 11.5px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; }
+  .doc .hd { display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 14px; }
+  .doc .hd span { font-size: 11px; font-weight: 600; color: #059669; background: #ecfdf5; padding: 2px 8px; border-radius: 99px; }
+  .doc ul { list-style: none; margin: 10px 0 0; padding: 0; }
+  .doc li { font-size: 13px; padding: 7px 0; border-top: 1px dashed var(--line); display: flex; gap: 8px; }
+  .doc li::before { content: ""; width: 6px; height: 6px; margin-top: 6px; border-radius: 99px; background: var(--brand-2); flex: none; }
+  .flist { display: flex; flex-wrap: wrap; gap: 6px; }
+  .flist span { font-size: 12px; border: 1px solid var(--line); border-radius: 8px; padding: 3px 8px; background: #fff; }
+  .plan { background: var(--grad); color: #fff; border: 0; }
+  .plan h3 { color: rgba(255,255,255,.8); }
+  .plan .pn { font-size: 20px; font-weight: 800; letter-spacing: -.02em; }
+  .plan .pp { font-size: 13px; opacity: .9; margin-top: 4px; line-height: 1.4; }
+  ol.steps { margin: 0; padding-left: 20px; font-size: 14px; line-height: 1.7; }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; margin-top: 16px; }
+
+  .toast {
+    position: fixed; z-index: 50; top: 70px; left: 50%; transform: translate(-50%, -20px);
+    background: var(--ink); color: #fff; padding: 10px 14px; border-radius: 10px; font-size: 14px;
+    opacity: 0; transition: .3s; pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  @media (max-width: 640px) {
+    .feat { width: 128px; padding: 10px; }
+    .q h2 { font-size: 18px; }
+    .opts { grid-template-columns: 1fr 1fr; }
+    .opt { padding: 12px 8px; }
+    .opt .od { display: none; }
+    .trial { display: none; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo"><span class="mark"><i style="height:8px"></i><i style="height:16px"></i><i style="height:11px"></i><i style="height:18px"></i></span><span>Dr<b>Assistente</b></span></div>
+  <button class="trial" id="trial">Teste grátis</button>
+</header>
+
+<div id="field"></div>
+<div class="counter" id="counter"></div>
+<div id="panel"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ---------------------------------------------------------------------------
+// Funcionalidades reais do Dr. Assistente (drassistente.com.br), com o plano
+// em que cada uma aparece e o peso de cada resposta ("pergunta:valor=peso").
+// ---------------------------------------------------------------------------
+const TIERS = { B: "Básico", A: "Avançado", P: "Pro", C: "Clínicas" };
+const FEATURES = [
+  ["gravacao","🎙️","Gravar a consulta","Um toque e a IA escuta o atendimento","B",6,"dor:digitar=2 dor:horas=2","Grave uma consulta-teste (pode ser simulada)"],
+  ["estruturado","📋","Prontuário estruturado","QP, HDA, exame físico e conduta organizados","B",5,"dor:digitar=2 dor:juridico=2",""],
+  ["modelo","🧩","Modelo da sua especialidade","Campos e termos técnicos da sua área","B",4,"",""],
+  ["colar","📎","Copiar e colar no seu sistema","Gera o texto e você cola no prontuário que já usa","B",0,"sis:outro=7 sis:clinica=2","Cole o primeiro relatório no sistema que você já usa"],
+  ["pep","🗂️","Prontuário e cadastro de pacientes","Todo o histórico num só lugar","B",0,"sis:nenhum=7 dor:cronicos=2","Cadastre seus primeiros pacientes"],
+  ["msg","💬","Mensagem para o paciente","Orientações prontas para o WhatsApp, no seu estilo","B",1,"dor:adesao=7 prof:vet=2 esp:pediatria=2 esp:geriatria=1 local:consultorio=1","Envie a mensagem pós-consulta para um paciente"],
+  ["privacidade","🔐","Exclusão automática das gravações","Áudio descartado logo após a transcrição","B",1,"dor:juridico=3 prof:psi=4 esp:psiquiatria=3","Escolha quando as gravações são apagadas"],
+  ["app","📱","App no celular e tablet","Grave em domicílio, plantão ou em movimento","B",0,"local:domicilio=7 local:hospital=3","Instale o app no celular e entre com sua conta"],
+  ["meet","💻","Gravar teleconsulta no Meet","Extensão do Chrome grava a chamada","B",-1,"local:tele=8 prof:psi=1","Instale a extensão do Chrome para teleconsultas"],
+  ["anotacoes","✍️","Anotações durante a consulta","Exames e dados que você prefere não falar","A",0,"dor:exames=2 prof:psi=3 esp:psiquiatria=2 nivel:equilibrado=1 nivel:completo=2",""],
+  ["historico","🧠","Consulta com contexto do histórico","Cada atendimento considera os anteriores","A",0,"dor:cronicos=7 local:hospital=2 esp:geriatria=3 esp:cardio=2 prof:psi=3","Atenda um paciente de retorno e veja o contexto aplicado"],
+  ["aprende","🎓","Aprende com o seu feedback","Como um interno que memoriza suas preferências","A",0,"nivel:equilibrado=2 nivel:completo=4 dor:digitar=1","Dê seu primeiro feedback no relatório gerado"],
+  ["custom","✏️","Modelo de prontuário personalizado","Ajuste seções e formato ao seu jeito","A",0,"nivel:completo=3 dor:juridico=2 esp:outra=3",""],
+  ["ddx","🔎","Diagnósticos diferenciais","Hipóteses por probabilidade e sinais de alarme","A",-1,"prof:medico=3 local:hospital=3 nivel:completo=3 dor:juridico=1 prof:vet=2","Gere a análise diferencial de um caso"],
+  ["convenio","📑","Relatórios para convênios","Justificativas a partir do prontuário completo","A",-1,"local:hospital=7 dor:juridico=3 equipe:hospital=2",""],
+  ["exames","🧪","Análise de exames por IA","PDF ou foto do exame, valores alterados destacados","P",0,"dor:exames=8 prof:nutri=3 esp:cardio=2 esp:endocrino=3 dor:cronicos=1","Anexe um exame em PDF e veja a análise"],
+  ["timeline","📈","Linha do tempo do paciente","Cirurgias, medicações e exames por categoria","P",-1,"dor:cronicos=6 esp:geriatria=4 esp:cardio=2 nivel:completo=2",""],
+  ["lembretes","⏰","Lembretes entre consultas","Acompanhe o paciente até o retorno","P",-1,"dor:adesao=4 dor:cronicos=4 prof:nutri=2 prof:reab=2",""],
+  ["voz","🗣️","Edição do relatório por voz","\"Troque X por Y\" e pronto","P",0,"dor:horas=5 dor:digitar=3 local:domicilio=2 local:hospital=1",""],
+  ["fundadores","🤝","Fundadores treinam seu modelo","Acompanhamento direto pelo WhatsApp","P",-2,"nivel:completo=3 esp:outra=2",""],
+  ["multi","👥","Multiusuários","Toda a equipe na mesma conta","C",-5,"equipe:clinica=12 equipe:hospital=13","Convide os profissionais da equipe"],
+  ["dashboard","📊","Dashboard administrativo","Uso, produtividade e equipe","C",-5,"equipe:clinica=8 equipe:hospital=11",""],
+  ["integracao","🔌","Integração com seus sistemas","Direto no sistema da clínica ou hospital","C",-5,"sis:clinica=8 equipe:hospital=3",""],
+].map(([id, icon, name, desc, tier, base, w, step], order) => ({
+  id, icon, name, desc, tier, base, step, order,
+  w: Object.fromEntries(w.split(" ").filter(Boolean).map(p => { const [k, v] = p.split("="); return [k, +v]; })),
+}));
+
+const QUESTIONS = [
+  { id: "prof", title: "Qual é a sua área?", sub: "O Dr. Assistente se adapta a mais de 50 especialidades.", options: [
+    ["medico","🩺","Medicina"],["psi","🧠","Psicologia"],["vet","🐾","Veterinária"],["odonto","🦷","Odontologia"],
+    ["nutri","🥗","Nutrição"],["reab","🤸","Fisio, fono ou TO"],["enf","💉","Enfermagem"],["outra","➕","Outra área"],
+  ]},
+  { id: "esp", when: a => a.prof === "medico", title: "Qual é a sua especialidade?", sub: "Para carregar o modelo de prontuário certo.", options: [
+    ["clinica","🩺","Clínica médica / MFC"],["cardio","❤️","Cardiologia"],["pediatria","🧸","Pediatria"],["psiquiatria","🧠","Psiquiatria"],
+    ["geriatria","👵","Geriatria"],["ortopedia","🦴","Ortopedia"],["endocrino","🧬","Endocrinologia"],["outra","➕","Outra"],
+  ]},
+  { id: "local", title: "Onde você atende?", sub: "Escolha todos que se aplicam.", multi: 4, options: [
+    ["consultorio","🏥","Consultório"],["tele","💻","Telemedicina"],["hospital","🚑","Hospital ou plantão"],["domicilio","🏠","Domicílio / home care"],
+  ]},
+  { id: "sis", title: "Onde ficam seus prontuários hoje?", sub: "", options: [
+    ["outro","🖥️","Em outro sistema","Quero continuar usando"],["nenhum","📝","Papel, Word ou nada","Quero um prontuário"],["clinica","🏢","No sistema da clínica","Precisa integrar"],
+  ]},
+  { id: "dor", title: "O que mais pesa na sua rotina?", sub: "Escolha até duas.", multi: 2, options: [
+    ["digitar","⌨️","Digitar prontuário"],["horas","🌙","Levar trabalho para casa"],["juridico","⚖️","Registro incompleto e risco jurídico"],
+    ["adesao","💊","Paciente que não segue a orientação"],["exames","🧪","Ler exames que o paciente traz"],["cronicos","📈","Acompanhar casos longos"],
+  ]},
+  { id: "equipe", title: "Você usa sozinho ou com equipe?", sub: "", options: [
+    ["sozinho","🙋","Só eu","Uso individual"],["clinica","👥","Minha clínica","Alguns profissionais"],["hospital","🏨","Hospital ou rede","Muitos usuários"],
+  ]},
+  { id: "nivel", title: "Quanto você quer que a IA faça?", sub: "Dá para mudar depois, a qualquer momento.", options: [
+    ["essencial","🎙️","Só o prontuário","Gravo, ela escreve"],["equilibrado","🧩","Organize e me ajude","Escreve e sugere"],["completo","🧠","Seja meu interno","Aprende, analisa, lembra"],
+  ]},
+];
+const ACTIVE_BY_LEVEL = { essencial: 6, equilibrado: 9, completo: 13 };
+const STRONG = 4;
+
+const TEMPLATES = {
+  "medico": ["Queixa principal (QP)","História da doença atual (HDA)","Antecedentes","Exame físico","Hipótese diagnóstica","Conduta"],
+  "medico:cardio": ["Queixa principal e HDA","Fatores de risco cardiovascular","Exame físico (PA, FC, ausculta)","ECG e exames complementares","Hipótese diagnóstica e conduta"],
+  "medico:pediatria": ["Queixa e HDA (relato dos responsáveis)","Antecedentes perinatais","Vacinação e desenvolvimento","Exame físico","Conduta e orientações aos pais"],
+  "medico:psiquiatria": ["Queixa e HDA","Exame do estado mental","Antecedentes psiquiátricos","Hipótese diagnóstica (CID)","Conduta e prescrição"],
+  "medico:geriatria": ["Queixa e HDA","Comorbidades e polifarmácia","Avaliação funcional","Exame físico","Conduta"],
+  "medico:ortopedia": ["Queixa e mecanismo de lesão","Exame físico ortopédico","Exames de imagem","Hipótese diagnóstica","Conduta e reabilitação"],
+  "medico:endocrino": ["Queixa e HDA","Controle glicêmico e metabólico","Exame físico e antropometria","Exames laboratoriais","Conduta e metas"],
+  "psi": ["Demanda trazida","Contexto e histórico","Evolução da sessão","Observações clínicas","Plano terapêutico"],
+  "vet": ["Tutor e paciente (espécie, raça, idade)","Queixa e histórico","Exame físico","Exames complementares","Diagnóstico e conduta"],
+  "odonto": ["Queixa principal","Anamnese","Exame clínico intraoral","Plano de tratamento","Procedimentos realizados"],
+  "nutri": ["Objetivo e queixa","Recordatório alimentar","Antropometria","Exames","Plano alimentar e metas"],
+  "reab": ["Queixa funcional","Avaliação","Testes e escalas","Objetivos","Plano de tratamento"],
+  "outra": ["Motivo do atendimento","Histórico","Avaliação","Intervenções","Orientações"],
+};
+
+// ---------------------------------------------------------------------------
+// Estado (salvo na URL para retomar/compartilhar)
+// ---------------------------------------------------------------------------
+let answers = {};
+let pending = []; // seleção em andamento numa pergunta múltipla
+
+const activeQuestions = () => QUESTIONS.filter(q => !q.when || q.when(answers));
+const answeredCount = () => { const qs = activeQuestions(); const i = qs.findIndex(q => !answers[q.id]); return i === -1 ? qs.length : i; };
+const currentQuestion = () => activeQuestions()[answeredCount()];
+
+function readHash() {
+  answers = {};
+  const p = new URLSearchParams(location.hash.slice(1));
+  for (const q of QUESTIONS) {
+    if (q.when && !q.when(answers)) continue;
+    const v = p.get(q.id);
+    if (!v) break;
+    answers[q.id] = q.multi ? v.split(",") : v;
+  }
+}
+function writeHash() {
+  const p = new URLSearchParams();
+  for (const q of activeQuestions()) if (answers[q.id]) p.set(q.id, [].concat(answers[q.id]).join(","));
+  history.replaceState(null, "", "#" + p.toString().replace(/%2C/g, ","));
+}
+
+function keys() {
+  const a = { ...answers };
+  const q = currentQuestion();
+  if (q && q.multi && pending.length) a[q.id] = pending;
+  return activeQuestions().filter(q => a[q.id]).flatMap(q => [].concat(a[q.id]).map(v => `${q.id}:${v}`));
+}
+const score = f => keys().reduce((s, k) => s + (f.w[k] || 0), f.base);
+const ranked = () => FEATURES.map(f => ({ f, s: score(f) })).sort((a, b) => b.s - a.s || a.f.order - b.f.order);
+const activeCount = () => ACTIVE_BY_LEVEL[answers.nivel] || 9;
+const label = (q, v) => QUESTIONS.find(x => x.id === q).options.find(o => o[0] === v)[2];
+
+function specialtyName() {
+  if (answers.prof === "medico" && answers.esp && answers.esp !== "outra") return label("esp", answers.esp);
+  if (answers.prof && answers.prof !== "medico" && answers.prof !== "outra") return label("prof", answers.prof);
+  return null;
+}
+function featureName(f) {
+  if (f.id === "modelo" && specialtyName()) return `Modelo de ${specialtyName()}`;
+  return f.name;
+}
+
+// ---------------------------------------------------------------------------
+// Campo de funcionalidades
+// ---------------------------------------------------------------------------
+const field = document.getElementById("field");
+const els = {};
+for (const f of FEATURES) {
+  const el = document.createElement("div");
+  el.className = "feat";
+  el.title = f.desc;
+  el.innerHTML = `<span class="badge">ativa</span><div class="ic">${f.icon}</div><div class="nm"></div><div class="ds">${f.desc}</div><span class="tier">${TIERS[f.tier]}</span>`;
+  field.appendChild(el);
+  els[f.id] = el;
+}
+
+// Grade escalonada, ordenada pela distância ao centro: o centro é o melhor lugar
+function slots(n, cx, cy, sx, sy) {
+  const out = [];
+  for (let r = -6; r <= 6; r++)
+    for (let c = -8; c <= 8; c++) {
+      const x = cx + (c + (r & 1 ? 0.5 : 0)) * sx, y = cy + r * sy;
+      out.push([x, y, Math.hypot((x - cx) / sx, (y - cy) / sy * 1.15)]);
+    }
+  return out.sort((a, b) => a[2] - b[2]).slice(0, n);
+}
+
+function layout() {
+  const W = innerWidth, H = innerHeight;
+  const panelTop = document.getElementById("panel").getBoundingClientRect().top;
+  const counter = document.getElementById("counter");
+  counter.style.bottom = (H - panelTop + 10) + "px";
+  const small = W < 640;
+  const cardW = small ? 128 : 164, cardH = small ? 104 : 122;
+  const cx = W / 2, cy = Math.max(120, (60 + panelTop - 40) / 2);
+  const sx = cardW + (small ? 8 : 18), sy = cardH + (small ? 6 : 12);
+
+  const started = keys().length > 0;
+  const order = started ? ranked() : FEATURES.map(f => ({ f, s: 0 }));
+  const pts = slots(order.length, cx, cy, sx, sy);
+  const act = activeCount();
+  const done = answeredCount() === activeQuestions().length;
+
+  order.forEach(({ f, s }, i) => {
+    const el = els[f.id];
+    const [x, y] = pts[i];
+    let scale, op;
+    if (!started) { scale = 0.82; op = 0.8; }
+    else if (i < 3) { scale = 1.1; op = 1; }
+    else if (i < act) { scale = 0.95; op = 1; }
+    else if (s >= STRONG) { scale = 0.8; op = 0.6; }
+    else { scale = 0.66; op = 0.22; }
+    el.querySelector(".nm").textContent = featureName(f);
+    el.style.transform = `translate(${x - cardW / 2}px, ${y - cardH / 2}px) scale(${scale})`;
+    el.style.opacity = op;
+    el.style.zIndex = 100 - i;
+    el.classList.toggle("top", started && i < 3);
+    el.classList.toggle("dim", started && i >= act && s < STRONG);
+    el.classList.toggle("active", done && i < act);
+  });
+
+  const strong = order.filter(o => o.s >= STRONG).length;
+  counter.innerHTML = !started
+    ? `<b>${FEATURES.length} recursos.</b> Vamos descobrir quais fazem diferença para você.`
+    : done
+      ? `<b>${act} de ${FEATURES.length}</b> recursos ativados para o seu perfil. Os outros ficam a um clique.`
+      : `<b>${strong} de ${FEATURES.length}</b> recursos combinam com você. Os mais importantes estão no centro.`;
+}
+
+// ---------------------------------------------------------------------------
+// Painel de perguntas / resultado
+// ---------------------------------------------------------------------------
+const panel = document.getElementById("panel");
+
+function header(step, total, title, sub) {
+  const dots = Array.from({ length: total }, (_, i) => `<i class="${i < step || step === total ? "on" : ""}"></i>`).join("");
+  return `<div class="ph">
+    <div class="nav">
+      <button id="back" title="Voltar" ${step === 0 ? "disabled" : ""}>←</button>
+      <button id="reset" title="Recomeçar" ${step === 0 ? "disabled" : ""}>↺</button>
+    </div>
+    <div class="q"><h2>${title}</h2>${sub ? `<p>${sub}</p>` : ""}</div>
+    <div class="dots">${dots}</div>
+  </div>`;
+}
+
+function render() {
+  const qs = activeQuestions(), step = answeredCount();
+  if (step === qs.length) renderResult(qs.length);
+  else renderQuestion(qs[step], step, qs.length);
+  document.getElementById("back").onclick = back;
+  document.getElementById("reset").onclick = reset;
+  layout();
+}
+
+function renderQuestion(q, step, total) {
+  const sel = q.multi ? pending : [];
+  panel.innerHTML = header(step, total, q.title, q.sub) +
+    `<div class="opts">${q.options.map(([v, icon, l, d]) => `
+      <button class="opt ${sel.includes(v) ? "sel" : ""}" data-v="${v}">
+        <div class="oi">${icon}</div><div class="ol">${l}</div>${d ? `<div class="od">${d}</div>` : ""}
+      </button>`).join("")}</div>` +
+    (q.multi ? `<div class="multi-foot"><span>${sel.length} de ${q.multi} selecionada${q.multi > 1 ? "s" : ""}</span>
+      <button class="btn" id="next" ${sel.length ? "" : "disabled"}>Continuar</button></div>` : "");
+
+  panel.querySelectorAll(".opt").forEach(b => b.onclick = () => {
+    const v = b.dataset.v;
+    if (!q.multi) { answers[q.id] = v; writeHash(); render(); return; }
+    if (pending.includes(v)) pending = pending.filter(x => x !== v);
+    else { pending.push(v); if (pending.length > q.multi) pending.shift(); }
+    render(); // o campo já se reorganiza durante a escolha
+  });
+  const next = document.getElementById("next");
+  if (next) next.onclick = () => { answers[q.id] = pending.slice(); pending = []; writeHash(); render(); };
+}
+
+function recommendedPlan(top) {
+  if (answers.equipe && answers.equipe !== "sozinho")
+    return { name: "Solução para clínicas e hospitais", text: "Multiusuários, dashboard administrativo e integração com seus sistemas." };
+  const order = ["B", "A", "P"];
+  const tier = top.reduce((t, o) => order.indexOf(o.f.tier) > order.indexOf(t) ? o.f.tier : t, "B");
+  const price = { B: "R$150/mês", A: "R$250/mês", P: "R$450/mês" }[tier];
+  const why = top.filter(o => o.f.tier === tier && tier !== "B").slice(0, 2).map(o => { const n = featureName(o.f); return n[0].toLowerCase() + n.slice(1); });
+  return {
+    name: `Individual ${TIERS[tier]} · ${price}`,
+    text: (why.length ? `Por causa de ${why.join(" e ")}. ` : "Tudo o que você precisa para começar. ") +
+      "Seu teste grátis já inclui todos os recursos do Pro, sem cartão.",
+  };
+}
+
+function renderResult(total) {
+  const top = ranked().slice(0, activeCount());
+  const chips = activeQuestions().filter(q => q.id !== "nivel")
+    .flatMap(q => [].concat(answers[q.id]).map(v => label(q.id, v)));
+  const steps = top.map(o => o.f.step).filter(Boolean).slice(0, 4);
+  const tplKey = answers.prof === "medico" ? (TEMPLATES[`medico:${answers.esp}`] ? `medico:${answers.esp}` : "medico")
+    : (TEMPLATES[answers.prof] ? answers.prof : "outra");
+  const plan = recommendedPlan(top);
+  panel.innerHTML = header(total, total, "Seu Dr. Assistente está pronto", "") + `
+    <div class="chips">${chips.map(c => `<span class="chip">${c}</span>`).join("")}</div>
+    <div class="cols">
+      <div>
+        <div class="box doc">
+          <h3>Seu modelo de prontuário</h3>
+          <div class="hd">${specialtyName() || "Atendimento"} <span>Ativo</span></div>
+          <ul>${TEMPLATES[tplKey].map(s => `<li>${s}</li>`).join("")}</ul>
+        </div>
+        <div class="box">
+          <h3>Ativamos para você</h3>
+          <div class="flist">${top.map(o => `<span>${o.f.icon} ${featureName(o.f)}</span>`).join("")}</div>
+        </div>
+      </div>
+      <div>
+        <div class="box plan">
+          <h3>Plano que combina com você</h3>
+          <div class="pn">${plan.name}</div>
+          <div class="pp">${plan.text}</div>
+        </div>
+        <div class="box">
+          <h3>Seus primeiros passos</h3>
+          <ol class="steps">${steps.map(s => `<li>${s}</li>`).join("")}</ol>
+        </div>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn ghost" id="copy">Copiar link do perfil</button>
+      <button class="btn ghost" id="adjust">Ajustar respostas</button>
+      <button class="btn" id="go">Começar meu teste grátis →</button>
+    </div>`;
+  document.getElementById("adjust").onclick = back;
+  document.getElementById("copy").onclick = () => { navigator.clipboard?.writeText(location.href); toast("Link copiado. Quem abrir verá este mesmo perfil."); };
+  document.getElementById("go").onclick = () => toast("Protótipo: aqui o cadastro já começaria com esta configuração.");
+}
+
+function back() {
+  const step = answeredCount();
+  pending = [];
+  if (step === 0) return;
+  const q = activeQuestions()[step - 1];
+  if (q.multi) pending = [].concat(answers[q.id]);
+  delete answers[q.id];
+  writeHash();
+  render();
+}
+
+function reset() { answers = {}; pending = []; writeHash(); render(); }
+
+function toast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("show");
+  clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("show"), 2600);
+}
+
+document.getElementById("trial").onclick = () => toast("Responda as perguntas e o teste já começa configurado para você.");
+addEventListener("resize", layout);
+readHash();
+render();
+</script>
+</body>
+</html>
